@@ -13,6 +13,9 @@
 #  limitations under the License.
 
 # Configure wx version to allow running test app in __main__
+import os
+
+
 if __name__ == '__main__':
     import robotide as _
 
@@ -34,6 +37,45 @@ class FileSystemTree(CT.CustomTreeCtrl):
         self.SetImageList(self.images)
 
 
+class FileSystemTreeController(object):
+
+    def __init__(self, file_system_tree):
+        self._tree = file_system_tree
+        self._closed_directories = []
+        self._tree.Bind(wx.EVT_TREE_ITEM_EXPANDING, self._expanding)
+
+    def _expanding(self, event):
+        item = event.GetItem()
+        self._tree.DeleteChildren(item)
+        self._populate_directory(item)
+
+    def populate_tree(self, directory):
+        root = self._tree.AddRoot(text=os.path.basename(directory), image=self._tree.images.FOLDER, data=directory)
+        self._tree.AppendItem(root, text='...')
+
+    def _populate_directory(self, directory_node):
+        files, dirs = self._get_directory_child_elements(directory_node.GetData())
+        for d in dirs:
+            self._add_directory(d, directory_node)
+        for f in files:
+            self._tree.AppendItem(directory_node, text=f, image=self._tree.images.PAGE_WHITE)
+
+    def _add_directory(self, directory_name, parent_node):
+        directory = self._tree.AppendItem(parent_node, text=directory_name, image=self._tree.images.FOLDER, data=os.path.join(parent_node.GetData(), directory_name))
+        self._tree.AppendItem(directory, text='...')
+        self._closed_directories.append(directory)
+
+    def _get_directory_child_elements(self, directory):
+        dirs = []
+        files = []
+        for item in os.listdir(directory):
+            if os.path.isfile(os.path.join(directory, item)):
+                files += [item]
+            else:
+                dirs += [item]
+        return sorted(files), sorted(dirs)
+
+
 if __name__ == '__main__':
     class MyFrame(wx.Frame):
         def __init__(self, parent, id, title):
@@ -43,11 +85,7 @@ if __name__ == '__main__':
             frame = MyFrame(None , -1, 'Frame Window Demo')
             sz = wx.BoxSizer()
             tree2 = FileSystemTree(frame)
-            root = tree2.AddRoot('root', image=tree2.images.PAGE_WHITE_GEAR)
-            for x in range(5):
-                node = tree2.AppendItem(root, 'Item %d' % x, image=tree2.images.FOLDER_WRENCH)
-                for y in range(3):
-                    tree2.AppendItem(node, 'Child %d' % y, image=tree2.images.ROBOT)
+            FileSystemTreeController(tree2).populate_tree(os.path.split(__file__)[0]+'/..')
             sz.Add(tree2, 0, wx.GROW|wx.ALL, 5)
             frame.Show(True)
             self.SetTopWindow(frame)
