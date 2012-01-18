@@ -11,18 +11,25 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
+
+# Configure wx version to allow running test app in __main__
+if __name__ == '__main__':
+    import robotide as _
+
 import wx
+from robotide.ui.images import TreeImageList
+
 
 try:
-    import wx.lib.agw.customtreectrl as customtreectrl
+    import wx.lib.agw.customtreectrl as CT
 except ImportError:
-    import wx.lib.customtreectrl as customtreectrl
+    import wx.lib.customtreectrl as CT
 
 
-class FileSystemTree(customtreectrl.CustomTreeCtrl):
+class FileSystemTree(CT.CustomTreeCtrl):
 
     def __init__(self, parent):
-        customtreectrl.CustomTreeCtrl.__init__(self, parent=parent, name=self.__class__.__name__)
+        CT.CustomTreeCtrl.__init__(self, parent=parent, name=self.__class__.__name__)
 
 
 if __name__ == '__main__':
@@ -34,7 +41,13 @@ if __name__ == '__main__':
             frame = MyFrame(None , -1, 'Frame Window Demo')
             sz = wx.BoxSizer()
             tree2 = FileSystemTree(frame)
-            tree2.AddRoot('ROOT')
+            root = tree2.AddRoot('ROOT')
+            images = TreeImageList()
+            tree2.SetImageList(images)
+            for x in range(5):
+                node = tree2.AppendItem(root, 'Item %d' % x, image=images.FOLDER_WRENCH)
+                for y in range(3):
+                    tree2.AppendItem(node, 'Child %d' % y, image=images.ROBOT)
             sz.Add(tree2, 0, wx.GROW|wx.ALL, 5)
             frame.Show(True)
             self.SetTopWindow(frame)
