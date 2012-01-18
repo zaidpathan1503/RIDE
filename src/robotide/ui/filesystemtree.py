@@ -14,6 +14,7 @@
 
 # Configure wx version to allow running test app in __main__
 import os
+import shutil
 
 
 if __name__ == '__main__':
@@ -43,11 +44,26 @@ class FileSystemTreeController(object):
         self._tree = file_system_tree
         self._closed_directories = []
         self._tree.Bind(wx.EVT_TREE_ITEM_EXPANDING, self._expanding)
+        self._tree.Bind(wx.EVT_TREE_BEGIN_DRAG, self._begin_drag)
+        self._tree.Bind(wx.EVT_TREE_END_DRAG, self._end_drag)
 
     def _expanding(self, event):
         item = event.GetItem()
         self._tree.DeleteChildren(item)
         self._populate_directory(item)
+
+    def _begin_drag(self, event):
+        item = event.GetItem()
+        if os.path.isfile(item.GetData()):
+            self._drag_file_node = item
+            event.Allow()
+
+    def _end_drag(self, event):
+        drop_target = event.GetItem()
+        if drop_target and os.path.isdir(drop_target.GetData()):
+            self._tree.AppendItem(drop_target, text=self._drag_file_node.GetText(), image=self._drag_file_node.GetImage(), data=self._data(drop_target, self._drag_file_node.GetText()))
+            self._tree.Delete(self._drag_file_node)
+        self._tree.Refresh()
 
     def populate_tree(self, directory):
         root = self._tree.AddRoot(text=os.path.basename(directory), image=self._tree.images.FOLDER, data=directory)
@@ -58,12 +74,15 @@ class FileSystemTreeController(object):
         for d in dirs:
             self._add_directory(d, directory_node)
         for f in files:
-            self._tree.AppendItem(directory_node, text=f, image=self._tree.images.PAGE_WHITE)
+            self._tree.AppendItem(directory_node, text=f, image=self._tree.images.PAGE_WHITE, data=self._data(directory_node, f))
 
     def _add_directory(self, directory_name, parent_node):
-        directory = self._tree.AppendItem(parent_node, text=directory_name, image=self._tree.images.FOLDER, data=os.path.join(parent_node.GetData(), directory_name))
+        directory = self._tree.AppendItem(parent_node, text=directory_name, image=self._tree.images.FOLDER, data=self._data(parent_node, directory_name))
         self._tree.AppendItem(directory, text='...')
         self._closed_directories.append(directory)
+
+    def _data(self, parent_node, name):
+        return os.path.join(parent_node.GetData(), name)
 
     def _get_directory_child_elements(self, directory):
         dirs = []
