@@ -29,6 +29,7 @@ RETURN_CHAR = u'\u21A9'
 ESC_CHAR = u'\u238B'
 UP_CHAR = u'\u2191'
 DOWN_CHAR = u'\u2193'
+TAB_CHAR = u'\u0009'
 
 _REPLACE = {
     'Cmd': CMD_CHAR,
@@ -44,7 +45,8 @@ _REPLACE = {
     'Escape': ESC_CHAR,
     '-': '',
     'Up': UP_CHAR,
-    'Down': DOWN_CHAR
+    'Down': DOWN_CHAR,
+    'Tab': TAB_CHAR
 }
 
 def localize_shortcuts(string):

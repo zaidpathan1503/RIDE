@@ -22,6 +22,7 @@ from robotide import robotapi
 from robotide.context import IS_WINDOWS, IS_MAC
 from robotide.controller.commands import SetDataFile
 from robotide.publish.messages import RideMessage
+from robotide.namespace.suggesters import SuggestionSource
 from robotide.widgets import VerticalSizer, HorizontalSizer, ButtonWithHandler
 from robotide.pluginapi import Plugin, RideSaving, TreeAwarePluginMixin,\
     RideTreeSelection, RideNotebookTabChanging, RideDataChanged,\
@@ -44,9 +45,8 @@ class TextEditorPlugin(Plugin, TreeAwarePluginMixin):
     @property
     def _editor(self):
         if not self._editor_component:
-            self._editor_component = SourceEditor(self.notebook,
-                                                  self.title,
-                                                  DataValidationHandler(self))
+            self._editor_component = SourceEditor(
+                self.notebook, self.title, DataValidationHandler(self))
             self._refresh_timer = wx.Timer(self._editor_component)
             self._editor_component.Bind(wx.EVT_TIMER, self._on_timer)
         return self._editor_component
@@ -78,6 +78,7 @@ class TextEditorPlugin(Plugin, TreeAwarePluginMixin):
         self.register_shortcut('CtrlCmd-F', lambda e: self._editor._search_field.SetFocus())
         self.register_shortcut('CtrlCmd-G', lambda e: self._editor.OnFind(e))
         self.register_shortcut('CtrlCmd-Shift-G', lambda e: self._editor.OnFindBackwards(e))
+        self.register_shortcut('Shift-Tab', lambda e: focused(self._editor.OnContentAssist(e)))
 
     def disable(self):
         self.remove_self_from_tree_aware_plugins()
@@ -135,8 +136,8 @@ class TextEditorPlugin(Plugin, TreeAwarePluginMixin):
                                               self.global_settings))
 
     def _open_data_for_controller(self, datafile_controller):
-        self._editor.selected(DataFileWrapper(datafile_controller,
-                                              self.global_settings))
+        self._editor.selected(
+            DataFileWrapper(datafile_controller, self.global_settings))
 
     def OnTabChange(self, message):
         if message.newtab == self.title:
@@ -144,7 +145,6 @@ class TextEditorPlugin(Plugin, TreeAwarePluginMixin):
             self._editor.set_editor_caret_position()
         elif message.oldtab == self.title:
             self._editor.remove_and_store_state()
-
 
     def _apply_txt_changes_to_model(self):
         if not self._editor.save():
@@ -357,7 +357,6 @@ class SourceEditor(wx.Panel):
     def datafile_controller(self):
         return self._data._data if self._data else None
 
-
     def OnFind(self, event):
         if self._editor:
             self._find()
@@ -390,9 +389,18 @@ class SourceEditor(wx.Panel):
         else:
             self._search_field_notification.SetLabel('No matches found.')
 
+    def OnContentAssist(self, event):
+        if wx.Window.FindFocus() is self._editor:
+            sugs = [s.name for s in self._suggestions.get_suggestions('')]
+            self._editor.AutoCompSetDropRestOfWord(True)
+            self._editor.AutoCompSetSeparator(ord(';'))
+            self._editor.AutoCompShow(0, ";".join(sugs))
+            event.Skip()
+
     def open(self, data):
         self.reset()
         self._data = data
+        self._suggestions = SuggestionSource(None, data._data.tests[0])
         if not self._editor:
             self._stored_text = self._data.content
         else:
@@ -411,8 +419,8 @@ class SourceEditor(wx.Panel):
 
     def save(self, *args):
         if self.dirty:
-            if not self._data_validator.validate_and_update(self._data,
-                                                     self._editor.utf8_text):
+            if not self._data_validator.validate_and_update(
+                    self._data, self._editor.utf8_text):
                 return False
         return True
 
@@ -488,7 +496,8 @@ class RobotDataEditor(stc.StyledTextCtrl):
     def __init__(self, parent):
         stc.StyledTextCtrl.__init__(self, parent)
         self.SetMarginType(0, stc.STC_MARGIN_NUMBER)
-        self.SetMarginWidth(0, self.TextWidth(stc.STC_STYLE_LINENUMBER,'1234'))
+        self.SetMarginWidth(
+            0, self.TextWidth(stc.STC_STYLE_LINENUMBER, '1234'))
         self.SetReadOnly(True)
         self.SetLexer(stc.STC_LEX_CONTAINER)
         self.Bind(stc.EVT_STC_STYLENEEDED, self.OnStyle)
