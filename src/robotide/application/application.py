@@ -51,8 +51,9 @@ class RIDE(wx.App):
         self._controller = Project(self.namespace, self.settings)
         self.frame = RideFrame(self, self._controller)
         self._editor_provider = EditorProvider()
-        self._plugin_loader = PluginLoader(self, self._get_plugin_dirs(),
-                                           coreplugins.get_core_plugins())
+        self._plugin_loader = PluginLoader(
+            self, self._get_plugin_dirs(),
+            coreplugins.get_core_plugins(self.settings))
         self._plugin_loader.enable_plugins()
         self.editor = self._get_editor()
         self._load_data()
@@ -79,10 +80,10 @@ class RIDE(wx.App):
                 contrib.CONTRIB_PATH]
 
     def _get_editor(self):
-        from robotide.editor import EditorPlugin
+        from robotide.editor.structurededitor import StructuredEditorPlugin
         for pl in self._plugin_loader.plugins:
             maybe_editor = pl._plugin
-            if isinstance(maybe_editor, EditorPlugin):
+            if isinstance(maybe_editor, StructuredEditorPlugin):
                 maybe_editor.show()
                 return maybe_editor
 

@@ -12,5 +12,13 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
+from .structurededitor import StructuredEditorPlugin
+from .texteditor import TextEditorPlugin
 
-from .structurededitor import StructuredEditorPlugin as EditorPlugin
+
+def load_editor_plugin(settings):
+    print settings.get('preferred editor', 'structured')
+    if settings.get('preferred editor', 'structured') == 'text':
+        return TextEditorPlugin
+    else:
+        return StructuredEditorPlugin

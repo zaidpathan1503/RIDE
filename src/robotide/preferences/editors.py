@@ -20,6 +20,16 @@ from robotide.preferences import widgets
 from robotide.widgets import Label
 
 
+class EditorsPreferences(widgets.PreferencesPanel):
+    location = ("Editors",)
+    title = "Editor Settings"
+
+    def __init__(self, settings, *args, **kwargs):
+        super(EditorsPreferences, self).__init__(*args, **kwargs)
+        default_editor_choice = widgets.PreferencesComboBox(
+            self, -1, settings, 'default editor', ["structured", "text"])
+
+
 class EditorPreferences(widgets.PreferencesPanel):
 
     def __init__(self, settings, *args, **kwargs):
@@ -56,7 +66,7 @@ class EditorPreferences(widgets.PreferencesPanel):
 
 
 class TextEditorPreferences(EditorPreferences):
-    location = ("Text Editor",)
+    location = ("Editors", "Text Editor")
     title = "Text Editor Settings"
 
     def __init__(self, settings, *args, **kwargs):
@@ -122,7 +132,7 @@ class TextEditorPreferences(EditorPreferences):
 
 
 class GridEditorPreferences(EditorPreferences):
-    location = ("Grid Editor",)
+    location = ("Editors", "Grid Editor")
     title = "Grid Editor Settings"
 
     def __init__(self, settings, *args, **kwargs):
