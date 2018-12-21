@@ -570,7 +570,7 @@ class ResourceImportController(_ImportController):
         self._resolved_import = False
 
     def contains_filename(self, filename):
-        return self.name.endswith(filename)
+        return self.name.endswith(filename) 
 
     def change_name(self, old_name, new_name):
         if self.contains_filename(old_name):

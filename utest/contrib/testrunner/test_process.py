@@ -40,7 +40,8 @@ class ProcessUnicodeTestCase(unittest.TestCase):
 
     def _run_small_test(self):
         p = Process(datafilereader.SMALL_TEST_PATH)
-        p.run_command('pybot' + ('.bat' if IS_WINDOWS else '') + ' --output NONE --log NONE --report NONE .')
+        #p.run_command('pybot' + ('.bat' if IS_WINDOWS else '') + ' --output NONE --log NONE --report NONE .')
+        p.run_command('robot' + ('.exe' if IS_WINDOWS else '') + ' --output NONE --log NONE --report NONE .')
         max_time = 5.0
         while p.is_alive() and max_time > 0:
             time.sleep(0.1)

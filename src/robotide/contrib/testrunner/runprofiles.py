@@ -73,7 +73,7 @@ class BaseProfile(object):
 
     def get_command_prefix(self):
         '''Returns a command and any special arguments for this profile'''
-        return ["pybot.bat" if os.name == "nt" else "pybot"]
+        return ["robot.exe" if os.name == "nt" else "pybot"]
 
     def set_setting(self, name, value):
         '''Sets a plugin setting
@@ -142,7 +142,8 @@ class PybotProfile(BaseProfile):
         return self.arguments.split()
 
     def get_command(self):
-        return "pybot.bat" if os.name == "nt" else "pybot"
+        #return "pybot.bat" if os.name == "nt" else "pybot"
+        return "robot.exe" if os.name == "nt" else "pybot"
 
     def get_custom_args(self):
         args = []
